@@ -4,8 +4,8 @@ from sqlalchemy import event
 from sqlalchemy.engine import Engine
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from linked_list import LinkedList
-
+import linked_list
+import hashtable
 
 # app
 app = Flask(__name__)
@@ -63,7 +63,7 @@ def create_user():
 @app.route('/user/descending_id', methods=["GET"])
 def get_all_users_descending():
     users = User.query.all()
-    new_users_ll = linked_list.LinkedList
+    new_users_ll = linked_list.LinkedList()
      
     for user in users:
         new_users_ll.insert_beginning(
@@ -83,7 +83,7 @@ def get_all_users_descending():
 @app.route('/user/ascending_id', methods=["GET"])
 def get_all_users_ascending():
     users = User.query.all()
-    new_users_ll = LinkedList.LinkedList()
+    new_users_ll = linked_list.LinkedList()
      
     for user in users:
         new_users_ll.insert_at_end(
@@ -135,11 +135,41 @@ def delete_user(user_id):
 
 @app.route('/blog_post/<user_id>', methods=["POST"])
 def create_blog_post_(user_id):
-    pass
+   data = request.get_json()
 
-@app.route('/user/<user_id>', methods=["GET"])
+   user = User.query.filter_by(id=user_id).first()
+   if not user:
+         return jsonify({ "message": "user does not exist!" }), 400
+   
+   ht = hashtable.HashTable(10)
+   
+   ht.add_key_value("title", data["title"])
+   ht.add_key_value("body", data["body"])
+   ht.add_key_value("date", now)
+   ht.add_key_value("user_id", user_id)
+
+   ht.print_table()
+
+@app.route('/blog_post/<blog_post_id>', methods=["GET"])
 def get_all_blog_posts(user_id):
-    pass
+   blog_posts = BlogPost.query.all()
+   random.shuffle(blog_posts)
+
+   bst = binary_search_tree.BinarySearchTree()
+
+   for post in blog_posts:
+    bst.insert({
+        "id": post.id,
+        "title": post.title,
+        "body": post.body,
+        "user_id": post.user_id,
+    })
+   post  = bst.search(blog_post_id)
+   
+   if not post:
+        return jsonify({ "message": "post not found" })
+   return jsonify(post) 
+    
 
 
 @app.route('/blog_post/<blog_post_id>', methods=["GET"])
